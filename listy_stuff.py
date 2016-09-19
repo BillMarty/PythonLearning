@@ -1,5 +1,6 @@
 #Playing around
 #Verify my observation about squares being sum of odds
+#Changed file encoding from UTF-8 to ASCII
 
 #How many squares am I going to check?
 limit = 100

@@ -1,4 +1,5 @@
-# Some work with dictionaries :-)
+#!/usr/bin/env python3
+#  Some work with dictionaries :-)
 #Changed file encoding from UTF-8 to ASCII
 
 # First, let's create a dictionary with some interesting content.

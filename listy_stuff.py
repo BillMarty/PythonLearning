@@ -1,4 +1,5 @@
-#Playing around
+#!/usr/bin/env python3
+# #Playing around
 #Verify my observation about squares being sum of odds
 #Changed file encoding from UTF-8 to ASCII
 

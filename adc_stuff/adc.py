@@ -19,7 +19,13 @@ import os
 
 from recordclass import recordclass
 
-from .pins import normalize_pin
+#from .pins import normalize_pin
+#------------------------------------------------------------------
+# Bill: I pulled this in from Matthew's pins.py, in place of the import statement above.
+def normalize_pin(pin):
+    """Return a standardized format of a pin number"""
+    return re.sub(r'[Pp]([89]).*([0-9]{2})', r'P\1_\2', pin)
+#------------------------------------------------------------------
 
 adc_setup = False
 
@@ -45,7 +51,6 @@ pins = {
 }
 
 SLOTS = '/sys/devices/platform/bone_capemgr/slots'
-
 
 def setup():
     """

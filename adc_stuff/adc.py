@@ -22,9 +22,9 @@ from recordclass import recordclass
 #from .pins import normalize_pin
 #------------------------------------------------------------------
 # Bill: I pulled this in from Matthew's pins.py, in place of the import statement above.
-def normalize_pin(pin):
-    """Return a standardized format of a pin number"""
-    return re.sub(r'[Pp]([89]).*([0-9]{2})', r'P\1_\2', pin)
+# def normalize_pin(pin):
+#     """Return a standardized format of a pin number"""
+#     return re.sub(r'[Pp]([89]).*([0-9]{2})', r'P\1_\2', pin)
 #------------------------------------------------------------------
 
 adc_setup = False
@@ -106,7 +106,7 @@ def read_raw(pin):
     :return:
         12-bit count as an int
     """
-    pin = normalize_pin(pin)
+    # pin = normalize_pin(pin)
     if pin not in pins:
         raise ValueError("%s is not an analog input pin" % pin)
 

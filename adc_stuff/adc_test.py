@@ -7,8 +7,8 @@ import time
 pin = 'P9_38'
 
 print('Calling setup().')
-setup()
-if adc_setup:
+adc.setup()
+if adc.adc_setup:
     print('Setup returned adc_setup = True.' )
 else:
     print('Setup returned adc_setup = False.')
@@ -16,6 +16,6 @@ else:
 print('Reading P9_38:')
 for n in [10]:
     time.sleep(0.5)
-    volts = read_volts(pin)
+    volts = adc.read_volts(pin)
     adc_count = read_raw(pin)
     print(str(pin) + ': volts = ' + str(volts) + ', counts = ' + str(adc_count))

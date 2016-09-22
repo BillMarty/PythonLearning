@@ -114,9 +114,14 @@ def read_raw(pin):
         raise RuntimeError("ADC must be setup before use")
 
     pin = pins[pin]
+    print("pin = " + str(pin))
 
-    os.lseek(pin.fd, 0, os.SEEK_SET)
+    return_value = os.lseek(pin.fd, 0, os.SEEK_SET)
+    print('return_value of os.lseek call is ' + string(return_value))
+
     value = int(os.read(pin.fd, 4))
+    print('value of os.read is ' + str(value))
+
     # if not os.path.exists(pin.path):
     #     raise RuntimeError("Sysfs file for {:s} disappeared".format(pin))
 
@@ -129,7 +134,7 @@ def read_raw(pin):
     # except ValueError:
     #     raise RuntimeError("Invalid non-integer value from sysfs file")
 
-    assert (0 <= value <= 4095)
+    assert (0 <= value <= 4095), 'read_raw assertion failed'
     return value
 
 

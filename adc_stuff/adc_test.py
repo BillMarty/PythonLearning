@@ -16,6 +16,7 @@ else:
 print('Reading P9_38:')
 for n in range(1,10):
     time.sleep(0.5)
-    volts = adc.read_volts(pin)
-    adc_count = adc.read_raw(pin)
-    print(str(pin) + ': volts = ' + str(volts) + ', counts = ' + str(adc_count))
+    #volts = adc.read_volts(pin)
+    adc_counts = adc.read_raw(pin)
+    volts = 1.8 * adc_counts/4096
+    print(str(pin) + ': volts = ' + str(volts) + ', counts = ' + str(adc_counts))

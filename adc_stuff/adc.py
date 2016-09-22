@@ -117,7 +117,7 @@ def read_raw(pin):
     print("pin = " + str(pin))
 
     return_value = os.lseek(pin.fd, 0, os.SEEK_SET)
-    print('return_value of os.lseek call is ' + string(return_value))
+    print('return_value of os.lseek call is ' + str(return_value))
 
     value = int(os.read(pin.fd, 4))
     print('value of os.read is ' + str(value))

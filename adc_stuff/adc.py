@@ -80,11 +80,20 @@ def setup():
     if adc_setup:
         print('Progress1')
         try:
+            print('Progress2.1')
             base_path = glob.glob('/sys/bus/iio/devices/iio:device?')[0]
-            print('Progress2 ' + str(base_path))
+            print('Progress2.2 ' + str(base_path))
         except IndexError:
             print('Progress3: IndexError')
-            return False
+            #It may take some time for the base_path to appear.  Try again.
+            time.sleep(2.0)
+            try:
+                print('Progress3.1')
+                base_path = glob.glob('/sys/bus/iio/devices/iio:device?')[0]
+                print('Progress3.2')
+            except IndexError:
+                print('Progress3.3')
+                return False
 
         for _, pin in pins.items():
             print('Progress4')

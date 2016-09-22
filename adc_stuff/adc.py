@@ -78,21 +78,28 @@ def setup():
 
     # Calculate paths
     if adc_setup:
+        print('Progress1')
         try:
             base_path = glob.glob('/sys/bus/iio/devices/iio:device?')[0]
+            print('Progress2 ' + str(base_path))
         except IndexError:
+            print('Progress3: IndexError')
             return False
 
         for _, pin in pins.items():
+            print('Progress4')
             path = os.path.join(base_path, 'in_voltage{:d}_raw'.format(pin.id))
             if not os.path.exists(path):
+                print('Progress5')
                 return False
             pin.path = path
             fd = os.open(pin.path, os.O_RDONLY)
             # Check that it opened successfully
             if fd >= 0:
+                print('Progress6')
                 pin.fd = fd
 
+    print('Progress7')
     return adc_setup
 
 

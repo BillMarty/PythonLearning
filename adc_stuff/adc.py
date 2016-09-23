@@ -79,21 +79,29 @@ def setup():
     # Calculate paths
     if adc_setup:
         print('Progress1')
-        try:
-            print('Progress2.1')
-            base_path = glob.glob('/sys/bus/iio/devices/iio:device?')[0]
-            print('Progress2.2 ' + str(base_path))
-        except IndexError:
-            print('Progress3: IndexError')
-            #It may take some time for the base_path to appear.  Try again.
-            time.sleep(2.0)
+        path_success = False
+        #Apparently, file system additions due to adding BB-ADC cape take time, ...
+        #   so we build in delay and retry :-)
+        for delay in range(1,11):
+            time.sleep(0.2)
             try:
-                print('Progress3.1')
+                print('Progress2.1')
                 base_path = glob.glob('/sys/bus/iio/devices/iio:device?')[0]
-                print('Progress3.2')
+                print('Progress2.2')
             except IndexError:
-                print('Progress3.3')
-                return False
+                print('Progress3.1: IndexError')
+                continue
+            else:
+                print('Progress3.2: base_path success')
+                path_success = True
+                break
+
+        if path_success:
+            print('ADC path_success at delay = ' + str(delay))
+        else:
+            print('ADC path failed!')
+            adc_setup = False
+            return adc_setup
 
         for _, pin in pins.items():
             print('Progress4')

@@ -16,16 +16,19 @@ cb_contacts.append({'Last Name': 'Kent', 'First Name': 'Kristin', 'Organization'
 cb_contacts.append({'Last Name': 'Marty', 'First Name': 'Sheila', 'Organization': '', 'Phone': '206 794-0992', 'Email': 'smarty@stjohnsea.org'})
 
 
-print('You have ' + str(len(cb_contacts)) + ' contacts :-)')
+def print_contacts(contacts):
+    """A simple function to neatly print contacts."""
+    print('You have ' + str(len(cb_contacts)) + ' contacts :-)')
+    for contact in contacts:
+        print(contact['First Name'] + ' ' + contact['Last Name'])
+        if contact['Organization']:
+            print(contact['Organization'])
+        if contact['Phone']:
+            print(contact['Phone'])
+        print(contact['Email'])
+        print()
 
-for contact in cb_contacts:
-    print(contact['First Name'] + ' ' + contact['Last Name'])
-    if contact['Organization']:
-        print(contact['Organization'])
-    if contact['Phone']:
-        print(contact['Phone'])
-    print(contact['Email'])
-    print()
+print_contacts(cb_contacts)
 
 # Try something fancy
 # First, add a key to each contact dictionary telling whether it has been marked.
@@ -51,11 +54,4 @@ for last_name in sorted(last_names):
 
 print('\nDone sorting contacts')
 
-for contact in sorted_cb_contacts:
-    print(contact['First Name'] + ' ' + contact['Last Name'])
-    if contact['Organization']:
-        print(contact['Organization'])
-    if contact['Phone']:
-        print(contact['Phone'])
-    print(contact['Email'])
-    print()
+print_contacts(sorted_cb_contacts)

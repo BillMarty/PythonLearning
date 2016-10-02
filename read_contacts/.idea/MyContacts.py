@@ -22,20 +22,44 @@ class MyContacts():
             lines = file.readlines()
             print('Read ' + str(len(lines)) + ' lines from ' + in_file)
 
+        # Verify that I'm reading all the lines correctly.
+        # index = 1
+        # for line in lines:
+        #     print(str(index) + ')  ' + line.rstrip())
+        #     index += 1
+        # print()
+        # print()
+
+
         # The first line in the file is the header, that maps all the field names.
-        print('The header is: ' + lines[0])
-        header = lines[0]
+        header = lines[0].rstrip()
+        print('The header is: ' + header)
         del lines[0]
 
         #Separate out the fields in header
         header_fields = str.split(header, ',')
         print(header_fields)
-        print('There are ' + str(len(lines)) + ' contact records in the list.')
+        print('\nThere are ' + str(len(lines)) + ' contact records in the list.')
 
         # Create one contact object for each line in the file.
-        #for line in lines:
         contacts = []
-        contacts.append(Contact(header_fields, lines[0]))
+        difficult_lines = []
+        is_multi_line_record = False
+        for line in lines:
+            line = line.rstrip()
+            if '"' in line and not is_multi_line_record:
+                difficult_lines.append(line)
+                print('Adding to difficult lines: ' + line)
+                is_multi_line_record = True
+            elif is_multi_line_record and '"' not in line:
+                difficult_lines.append(line)
+                print('Adding to difficult lines: ' + line)
+            elif is_multi_line_record and '"' in line:
+                difficult_lines.append(line)
+                print('Adding to difficult lines: ' + line)
+                is_multi_line_record = False
+            else:
+                contacts.append(Contact(header_fields, line))
 
 
 my_contacts = MyContacts(contacts_file_path)

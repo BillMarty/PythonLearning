@@ -21,7 +21,7 @@ class MyContacts():
         assert 'csv' in in_file, '!File is not *.csv!'
         self.read_from_csv_file(in_file)
         self.remove_empty_contacts()
-
+        self.handle_difficult_lines()
 
     def read_from_csv_file(self, in_file):
         """Import a csv file that was exported from the Apple Contacts application.
@@ -79,4 +79,11 @@ class MyContacts():
         ending_count = len(self.contacts)
         print("Removed " + str(starting_count - ending_count) + " empty contacts.")
 
+    def handle_difficult_lines(self):
+        """The csv file includes 'difficult' records.  This function cleans them and adds them to contacts.
+            1) Records with multi-line entries in the Notes field."""
+        for line in self.difficult_lines:
+            print(line)
+
+            
 my_contacts = MyContacts(contacts_file_path)

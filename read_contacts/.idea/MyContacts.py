@@ -5,6 +5,7 @@
 from contact import Contact
 import platform
 
+# Detect OS, so that I can do work on Mac at home and Windows at work.
 macos_contacts_file_path = '/Users/billmarty/PythonLearning/CB_contacts.csv'
 windows_contacts_file_path = "C:/Users/bmarty/Documents/PyCharmProjects/PythonLearning/CB_Contacts.csv"
 if 'Windows' in platform.system():
@@ -19,6 +20,8 @@ class MyContacts():
         """init: Don't know what goes here yet."""
         assert 'csv' in in_file, '!File is not *.csv!'
         self.read_from_csv_file(in_file)
+        self.remove_empty_contacts()
+
 
     def read_from_csv_file(self, in_file):
         """Import a csv file that was exported from the Apple Contacts application.
@@ -27,15 +30,6 @@ class MyContacts():
         with open(in_file) as file:
             lines = file.readlines()
             print('Read ' + str(len(lines)) + ' lines from ' + in_file)
-
-        # Verify that I'm reading all the lines correctly.
-        # index = 1
-        # for line in lines:
-        #     print(str(index) + ')  ' + line.rstrip())
-        #     index += 1
-        # print()
-        # print()
-
 
         # The first line in the file is the header, that maps all the field names.
         header = lines[0].rstrip()
@@ -48,24 +42,41 @@ class MyContacts():
         print('\nThere are ' + str(len(lines)) + ' contact records in the list.')
 
         # Create one contact object for each line in the file.
-        contacts = []
-        difficult_lines = []
+        self.contacts = []
+        self.difficult_lines = []
+        # When a contact includes multi-line text in the Notes field, the csv file contains lines that
+        #   aren't "records".  Set these difficult lines apart for right now.
         is_multi_line_record = False
         for line in lines:
             line = line.rstrip()
             if '"' in line and not is_multi_line_record:
-                difficult_lines.append(line)
+                self.difficult_lines.append(line)
                 print('Adding to difficult lines: ' + line)
                 is_multi_line_record = True
             elif is_multi_line_record and '"' not in line:
-                difficult_lines.append(line)
+                self.difficult_lines.append(line)
                 print('Adding to difficult lines: ' + line)
             elif is_multi_line_record and '"' in line:
-                difficult_lines.append(line)
+                self.difficult_lines.append(line)
                 print('Adding to difficult lines: ' + line)
                 is_multi_line_record = False
             else:
-                contacts.append(Contact(header_fields, line))
+                self.contacts.append(Contact(header_fields, line))
 
+    def remove_empty_contacts(self):
+        """My csv file seems to include a certain number of empty contact records at the end of the file.
+            This function removes them."""
+        starting_count = len(self.contacts)
+        empties = []
+        for index, contact in enumerate(self.contacts):
+            if not contact.info:
+                empties.append(index)
+
+        empties.reverse()
+        for index in empties:
+            del self.contacts[index]
+
+        ending_count = len(self.contacts)
+        print("Removed " + str(starting_count - ending_count) + " empty contacts.")
 
 my_contacts = MyContacts(contacts_file_path)

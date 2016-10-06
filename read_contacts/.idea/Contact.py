@@ -7,7 +7,7 @@ class Contact():
 
     def __init__(self, header, contact_data):
         """Contact constructor - parse contact_data according to header, to fill a dictionary of information."""
-        self.contact_info = {}
+        self.info = {}
         self.parse_csv_fields(header, contact_data)
 
     def parse_csv_fields(self, header, contact_data):
@@ -20,9 +20,9 @@ class Contact():
         for index in range(len(header)):
             assert len(header) == len(field_data), print('!!Length mismatch!! \n' + str(field_data))
             if field_data[index]:
-                self.contact_info[header[index]] = field_data[index]
+                self.info[header[index]] = field_data[index]
 
-        print(self.contact_info)
+        print(self.info)
 
 
 

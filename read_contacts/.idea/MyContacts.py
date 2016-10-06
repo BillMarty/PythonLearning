@@ -4,6 +4,7 @@
 
 from contact import Contact
 import platform
+import sys
 
 # Detect OS, so that I can do work on Mac at home and Windows at work.
 macos_contacts_file_path = '/Users/billmarty/PythonLearning/CB_contacts.csv'
@@ -27,9 +28,14 @@ class MyContacts():
         """Import a csv file that was exported from the Apple Contacts application.
                 file: path specification for the csv file"""
 
-        with open(in_file) as file:
-            lines = file.readlines()
-            print('Read ' + str(len(lines)) + ' lines from ' + in_file)
+        try:
+            with open(in_file) as file:
+                lines = file.readlines()
+        except FileNotFoundError:
+            print('!!File not found: ' + str(in_file) + '!!')
+            sys.exit('Aborting...')
+
+        print('Read ' + str(len(lines)) + ' lines from ' + in_file)
 
         # The first line in the file is the header, that maps all the field names.
         header = lines[0].rstrip()
@@ -85,5 +91,5 @@ class MyContacts():
         for line in self.difficult_lines:
             print(line)
 
-            
+
 my_contacts = MyContacts(contacts_file_path)

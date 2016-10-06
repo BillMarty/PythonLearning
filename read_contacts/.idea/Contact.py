@@ -4,10 +4,10 @@
 
 class Contact():
     """Contact holds one contact as a dictionary, likely multi-level dictionary."""
-    contact_info = {}
 
     def __init__(self, header, contact_data):
         """Contact constructor - parse contact_data according to header, to fill a dictionary of information."""
+        self.contact_info = {}
         self.parse_csv_fields(header, contact_data)
 
     def parse_csv_fields(self, header, contact_data):

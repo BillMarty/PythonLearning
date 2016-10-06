@@ -2,9 +2,15 @@
 #   Build a Contacts management program that reads in my contacts (from a .csv file to start).
 #   In this file: The base class containing and manipulating my list of contacts.
 
-from contact import Contact 
+from contact import Contact
+import platform
 
-contacts_file_path = '/Users/billmarty/PythonLearning/CB_contacts.csv'
+macos_contacts_file_path = '/Users/billmarty/PythonLearning/CB_contacts.csv'
+windows_contacts_file_path = "C:/Users/bmarty/Documents/PyCharmProjects/PythonLearning/CB_Contacts.csv"
+if 'Windows' in platform.system():
+    contacts_file_path = windows_contacts_file_path
+else:
+    contacts_file_path = macos_contacts_file_path
 
 class MyContacts():
     """A class to contain a list of my contacts."""

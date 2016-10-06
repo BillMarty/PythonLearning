@@ -16,6 +16,7 @@ all pinmuxing is done ahead-of-time for all pins which are to be used.
 
 import glob
 import os
+import time
 
 from recordclass import recordclass
 

@@ -27,7 +27,6 @@ class MyContacts():
     def read_from_csv_file(self, in_file):
         """Import a csv file that was exported from the Apple Contacts application.
                 file: path specification for the csv file"""
-
         try:
             with open(in_file) as file:
                 lines = file.readlines()

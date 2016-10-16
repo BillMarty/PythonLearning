@@ -83,13 +83,38 @@ class MyContacts():
             del self.contacts[index]
 
         ending_count = len(self.contacts)
-        print("Removed " + str(starting_count - ending_count) + " empty contacts.")
+        print("Removed " + str(starting_count - ending_count) + " empty contacts.\n")
 
     def handle_difficult_lines(self):
         """The csv file includes 'difficult' records.  This function cleans them and adds them to contacts.
             1) Records with multi-line entries in the Notes field."""
+        is_multi_line_record = False
         for line in self.difficult_lines:
             print(line)
+            if '"' in line and not is_multi_line_record:
+                building_line = line
+                #Let's wrap the multi-line-notes field in triple quotes.
+                #First, replace the double quote character with tripple double quotes.
+                index = building_line.find('"')
+                building_line = building_line[:index] + '""' + building_line[index:] + "\n"
+                print("\tReplaced opening quote at " + str(index))
+                print("\t" + building_line)
+                is_multi_line_record = True
+            elif is_multi_line_record and '"' not in line:
+                building_line = building_line + line + "\n"
+                print("\tAdding:" + building_line)
+            elif is_multi_line_record and '"' in line:
+                #Finally, replace closing double quote with tripple quote.
+                index = building_line.find('"')
+                building_line = building_line[:index] + '""' + building_line[index:] + "\n"
+                print("\tFinally: " + building_line)
+                is_multi_line_record = False
+                #Add to contacts...
+                self.contacts.append(Contact(header_fields, line))
+            else:
+                print("Why are we here?")
+
+        print()
 
 
 my_contacts = MyContacts(contacts_file_path)

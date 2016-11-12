@@ -9,6 +9,28 @@ log_path = '/Users/billmarty/CMSlogs'
 # We're going to create a sub_directory for our output files.
 sub_dir = 'dayFiles'
 
+
+def parse_csv_fields(header, data):
+    info = {}
+    header_fields = str.split(header.rstrip(), ',')
+    data_fields = str.split(data.rstrip(), ',')
+    # if verbose:
+    #     print(header_fields)
+    #     print(data_fields)
+    #     print('Lengths of header, data_fields: ' + str(len(header)) + ', ' + str(len(data_fields)))
+
+    # Our header may contain extra fields of information.  If so, truncate it.
+    if len(header_fields) != len(data_fields):
+        header_fields = header_fields[:len(data_fields)]
+
+    # Match up the lists to create a dictionary.  Include only fields with non-empty data
+    for index in range(len(data_fields)):
+        if data_fields[index]:
+            info[header_fields[index]] = data_fields[index]
+
+    return info
+
+
 def main():
 
     # Go to the log directory and get a list of the 'run' log files.
@@ -55,6 +77,7 @@ def main():
     # Let's concatenate the recent_date_files into a single file.
     # While concatenating, let's build a table that highlights gaps in the log.
     is_first_header = True  # Only copy the header line once.
+    is_first_info = True
     line_count = 0
     recent_date_file_name = date_list[-1] +'_day_run.csv'
     sub_dir_file_name = './' + sub_dir + '/' + recent_date_file_name
@@ -73,6 +96,14 @@ def main():
                 for line in lines:
                     outfile.write(line)
                     line_count += 1
+                # Grab the first and last line info I want for my table
+                first_line = parse_csv_fields(header, lines[0])
+                last_line = parse_csv_fields(header, lines[-1])
+                if is_first_info:
+                    print(first_line)
+                    is_first_info = False
+
+
 
     if verbose: print('Line count: ' + str(line_count))
 

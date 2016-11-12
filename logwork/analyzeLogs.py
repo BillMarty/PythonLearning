@@ -6,6 +6,8 @@ import glob
 
 verbose = True  # Switch dev print statements on and off
 log_path = '/Users/billmarty/CMSlogs'
+# We're going to create a sub_directory for our output files.
+sub_dir = 'dayFiles'
 
 def main():
 
@@ -15,6 +17,16 @@ def main():
     run_files = glob.glob("*run*.csv")
     if verbose: print('There are ' + str(len(run_files)) + ' run log files.')
     run_files.sort()
+
+    # Does our output file sub_directory already exist?
+    dirs = os.listdir(log_path)
+    if not sub_dir in dirs:
+        if verbose: print('mkdir ' + sub_dir)
+        try:
+            os.mkdir(sub_dir, mode=0o777)
+        except:
+            print('!!mkdir exception!!')
+
 
     # File name template: year-month-day_hour_run#.csv
     # Get a list of the dates.
@@ -39,6 +51,33 @@ def main():
     if verbose:
         print(str(len(recent_date_files)) + ' recent date files')
         print(recent_date_files)
+
+    # Let's concatenate the recent_date_files into a single file.
+    # While concatenating, let's build a table that highlights gaps in the log.
+    is_first_header = True  # Only copy the header line once.
+    line_count = 0
+    recent_date_file_name = date_list[-1] +'_day_run.csv'
+    sub_dir_file_name = './' + sub_dir + '/' + recent_date_file_name
+    if verbose:
+        print(recent_date_file_name)
+        print(sub_dir_file_name)
+    with open(sub_dir_file_name, 'w') as outfile:
+        for file in recent_date_files:
+            with open(file, 'r') as infile:
+                lines = infile.readlines()
+                header = lines.pop(0)
+                if is_first_header:
+                    outfile.write(header)
+                    line_count += 1
+                    is_first_header = False
+                for line in lines:
+                    outfile.write(line)
+                    line_count += 1
+
+    if verbose: print('Line count: ' + str(line_count))
+
+
+
 
 
 

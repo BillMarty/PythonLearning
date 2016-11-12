@@ -28,6 +28,19 @@ def main():
     if verbose:
         print(str(len(date_list)) + ' unique dates')
         print(date_list)
+        print('Most recent date is: ' + str(date_list[-1]))
+
+    # Let's start with the run files for the most recent date.
+    # In theory, run_files is already a sorted by date.
+    recent_date_files = []
+    while date_list[-1] in run_files[-1]:
+        recent_date_files.append(run_files.pop())
+    recent_date_files.reverse()
+    if verbose:
+        print(str(len(recent_date_files)) + ' recent date files')
+        print(recent_date_files)
+
+
 
 
 if __name__ == '__main__':

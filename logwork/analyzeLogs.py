@@ -28,6 +28,7 @@ def parse_csv_fields(header, data):
 
     return info
 
+
 def add_table_entry(table, file, first_line, last_line):
     """When analyzing a batch of run log files, I want answers to a couple of questions:
             Are there gaps in the log?
@@ -36,7 +37,7 @@ def add_table_entry(table, file, first_line, last_line):
         This function fills in a table for at-a-glance analysis of a day's log files."""
     gap_tolerance = 10.0  # Seconds - gaps shorter than this are not flagged.
 
-    entry = { 'file': file }
+    entry = {'file': file}
     entry['startTime'] = first_line['linuxtime']
     entry['endTime'] = last_line['linuxtime']
     if table:
@@ -59,14 +60,14 @@ def main():
     run_files.sort()
 
     # Does our output file sub_directory already exist?
-    dir = os.listdir(log_path)
-    if sub_dir not in dir:
+    dir_contents = os.listdir(log_path)
+    if sub_dir not in dir_contents:
         if verbose: print('mkdir ' + sub_dir)
         try:
             os.mkdir(sub_dir, mode=0o777)
         except:
             print('!!mkdir exception!!')
-    dir = None
+    dir_contents = None
 
     # File name template: year-month-day_hour_run#.csv
     # Get a list of the dates.
@@ -114,7 +115,7 @@ def main():
                 # I've seen at least one run log file where the last line is corrupt or invalid.
                 #   So, check the last line, and dump if necessary.
                 keep = True
-                commas = header.count(',') - 5 # Header has some extra fields.
+                commas = header.count(',') - 5  # Header has some extra fields.
                 if lines[-1].count(',') < commas: keep = False
                 # Any more tests?
                 if not keep:

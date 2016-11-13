@@ -59,13 +59,14 @@ def main():
     run_files.sort()
 
     # Does our output file sub_directory already exist?
-    dirs = os.listdir(log_path)
-    if sub_dir not in dirs:
+    dir = os.listdir(log_path)
+    if sub_dir not in dir:
         if verbose: print('mkdir ' + sub_dir)
         try:
             os.mkdir(sub_dir, mode=0o777)
         except:
             print('!!mkdir exception!!')
+    dir = None
 
     # File name template: year-month-day_hour_run#.csv
     # Get a list of the dates.
@@ -94,7 +95,6 @@ def main():
     # Let's concatenate the recent_date_files into a single file.
     # While concatenating, let's build a table that highlights gaps in the log.
     is_first_header = True  # Only copy the header line once.
-    is_first_info = True
     line_count = 0
     table = []
     recent_date_file_name = date_list[-1] + '_day_run.csv'
@@ -104,6 +104,9 @@ def main():
         print(sub_dir_file_name)
     with open(sub_dir_file_name, 'w') as outfile:
         for file in recent_date_files:
+            if file == '2016-10-30_10_run0.csv':
+                # Place for a debug breakpoint
+                print('nop')
             with open(file, 'r') as infile:
                 lines = infile.readlines()
                 header = lines.pop(0)
@@ -111,16 +114,30 @@ def main():
                     outfile.write(header)
                     line_count += 1
                     is_first_header = False
-                for line in lines:
+                # I've seen at least one run log file where the last line is corrupt or invalid.
+                #   So, check the last line, and dump if necessary.
+                lm1 = lines[-1]
+                lm2 = lines[-2]
+                lm3 = lines[-3]
+                keep = True
+                commas = header.count(',') - 5 # Header has some extra fields.
+                if lines[-1].count(',') < commas: keep = False
+                # Any more tests?
+                if not keep:
+                    line_invalid = lines.pop()
+                for n, line in enumerate(lines):
                     outfile.write(line)
                     line_count += 1
-                # Grab the first and last line info I want for my table
+                    if file == '2016-10-30_10_run0.csv' and n == 561:
+                        # Place for a debug breakpoint
+                        print('nop')
+                # Grab the first and last line info I want for my table.
                 first_line = parse_csv_fields(header, lines[0])
                 last_line = parse_csv_fields(header, lines[-1])
-                if is_first_info:
-                    print(first_line)
-                    is_first_info = False
                 add_table_entry(table, file, first_line, last_line)
+            # We're done with lines here.  Can we encourage garbage collection
+            #   to free the memory?
+            del lines[:]
     if verbose: print('Line count: ' + str(line_count))
     if verbose: print('Table entries: ' + str(len(table)))
 

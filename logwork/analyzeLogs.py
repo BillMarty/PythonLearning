@@ -104,9 +104,6 @@ def main():
         print(sub_dir_file_name)
     with open(sub_dir_file_name, 'w') as outfile:
         for file in recent_date_files:
-            if file == '2016-10-30_10_run0.csv':
-                # Place for a debug breakpoint
-                print('nop')
             with open(file, 'r') as infile:
                 lines = infile.readlines()
                 header = lines.pop(0)
@@ -116,9 +113,6 @@ def main():
                     is_first_header = False
                 # I've seen at least one run log file where the last line is corrupt or invalid.
                 #   So, check the last line, and dump if necessary.
-                lm1 = lines[-1]
-                lm2 = lines[-2]
-                lm3 = lines[-3]
                 keep = True
                 commas = header.count(',') - 5 # Header has some extra fields.
                 if lines[-1].count(',') < commas: keep = False
@@ -128,9 +122,6 @@ def main():
                 for n, line in enumerate(lines):
                     outfile.write(line)
                     line_count += 1
-                    if file == '2016-10-30_10_run0.csv' and n == 561:
-                        # Place for a debug breakpoint
-                        print('nop')
                 # Grab the first and last line info I want for my table.
                 first_line = parse_csv_fields(header, lines[0])
                 last_line = parse_csv_fields(header, lines[-1])
@@ -141,6 +132,7 @@ def main():
     if verbose: print('Line count: ' + str(line_count))
     if verbose: print('Table entries: ' + str(len(table)))
 
+    # TODO write my table out to a csv file.
 
 if __name__ == '__main__':
     main()

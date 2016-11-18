@@ -51,9 +51,9 @@ class LogDir():
                 print(surprise_files)
             print(str(len(self.date_list)) + ' unique dates')
             print(self.date_list)
-            print('Most recent date is: ' + str(self.date_list[-1]))
 
-    def parse_csv_fields(self, header, data):
+    @staticmethod
+    def parse_csv_fields(header, data):
         """Our run log files are stored in csv format, with the first line
         in the file a header that defines the fields.  This function creates
         a dictionary from a header line and a data line by matching up
@@ -84,20 +84,54 @@ class LogDir():
         This function fills in a table for at-a-glance analysis
         of a day's log files."""
 
+        # Define the table header for use later when writing the file.
+        self.table_header = ['file', 'startTime', 'endTime', 'gap', 'starts']
+
         # Gaps shorter than this are not flagged.
         gap_tolerance = 10.0
 
         entry = {'file': file}
-        entry['startTime'] = first_line['linuxtime']
-        entry['endTime'] = last_line['linuxtime']
-        if table:
-            gap = float(entry['startTime']) - float(table[-1]['endTime'])
-            if gap > gap_tolerance:
-                entry['gap'] = str(int(gap))
-        entry['starts'] = str(float(last_line['Engine Starts'])
-                              - float(first_line['Engine Starts']))
+        if first_line and last_line:
+            entry['startTime'] = first_line['linuxtime']
+            entry['endTime'] = last_line['linuxtime']
+            if table:
+                gap = float(entry['startTime']) - float(table[-1]['endTime'])
+                if gap > gap_tolerance:
+                    entry['gap'] = str(int(gap))
+            entry['starts'] = str(float(last_line['Engine Starts'])
+                                  - float(first_line['Engine Starts']))
+        else:
+            entry['startTime'] = 'Zero byte file'
+            entry['endTime'] = '0'
 
         table.append(entry)
+
+    def write_table_file(self, table, sub_dir_table_name):
+        """Assuming a completed analysis table, will write it out
+        as a csv file."""
+
+        lines = 0
+        with open(sub_dir_table_name, 'w') as outfile:
+            # Write the header line.
+            line = self.table_header[0]
+            for field in self.table_header[1:]:
+                line += ',' + field
+            outfile.write(line + '\n')
+            lines += 1
+
+            # Write the table lines.
+            for entry in table:
+                line = entry[self.table_header[0]]
+                for field in self.table_header[1:]:
+                    try:
+                        line += ','+ entry[field]
+                    except KeyError:
+                        line += ','
+                outfile.write(line + '\n')
+                lines += 1
+
+        if verbose:
+            print(str(lines) + ' table lines written to ' + sub_dir_table_name)
 
     def recent_date_logs(self):
         """Look at the list of log files in the target directory, and RETURN
@@ -109,9 +143,13 @@ class LogDir():
         while self.date_list[-1] in self.run_files[-1]:
             self.recent_date_files.append(self.run_files.pop())
         self.recent_date_files.reverse()
+        # Pop this date from the list.
+        self.active_date = self.date_list.pop()
         if verbose:
+            print('\nMost recent date is: ' + str(self.active_date))
             print(str(len(self.recent_date_files)) + ' recent date files')
             print(self.recent_date_files)
+
         return self.recent_date_files
 
     def concatenate_recent_logs(self):
@@ -121,8 +159,10 @@ class LogDir():
         is_first_header = True  # Only copy the header line once.
         line_count = 0
         table = []
-        recent_date_file_name = self.date_list[-1] + '_day_run.csv'
+        recent_date_file_name = self.active_date + '_day_run.csv'
+        recent_date_table_name = self.active_date + '_analysis.csv'
         sub_dir_file_name = './' + sub_dir + '/' + recent_date_file_name
+        sub_dir_table_name = './' + sub_dir + '/' + recent_date_table_name
         if verbose:
             print(recent_date_file_name)
             print(sub_dir_file_name)
@@ -130,34 +170,38 @@ class LogDir():
             for file in self.recent_date_files:
                 with open(file, 'r') as infile:
                     lines = infile.readlines()
-                    header = lines.pop(0)
-                    if is_first_header:
-                        outfile.write(header)
-                        line_count += 1
-                        is_first_header = False
-                    # I've seen at least one run log file where
-                    # the last line is corrupt or invalid.
-                    # So, check the last line, and dump if necessary.
-                    keep = True
-                    commas = header.count(',') - 5  # Header has extra fields.
-                    if lines[-1].count(',') < commas: keep = False
-                    # Any more tests?
-                    if not keep:
-                        line_invalid = lines.pop()
-                    for n, line in enumerate(lines):
-                        outfile.write(line)
-                        line_count += 1
-                    # Grab the first and last line info I want for my table.
-                    first_line = self.parse_csv_fields(header, lines[0])
-                    last_line = self.parse_csv_fields(header, lines[-1])
+                    # Check for empty files.  We got some in development.
+                    if lines:
+                        header = lines.pop(0)
+                        if is_first_header:
+                            outfile.write(header)
+                            line_count += 1
+                            is_first_header = False
+                        # I've seen at least one run log file where
+                        # the last line is corrupt or invalid.
+                        # So, check the last line, and dump if necessary.
+                        keep = True
+                        commas = header.count(',') - 5  # Header has extra fields.
+                        if lines[-1].count(',') < commas: keep = False
+                        # Any more tests?
+                        if not keep:
+                            line_invalid = lines.pop()
+                        for n, line in enumerate(lines):
+                            outfile.write(line)
+                            line_count += 1
+                        # Grab the first and last line info I want for my table.
+                        first_line = self.parse_csv_fields(header, lines[0])
+                        last_line = self.parse_csv_fields(header, lines[-1])
+                    else:
+                        first_line = None
+                        last_line = None
                     self.add_table_entry(table, file, first_line, last_line)
                 # We're done with lines here.  Can we encourage garbage
                 # collection to free the memory?
                 del lines[:]
         if verbose: print('Line count: ' + str(line_count))
         if verbose: print('Table entries: ' + str(len(table)))
-
-        # TODO write my table out to a csv file.
+        self.write_table_file(table, sub_dir_table_name)
 
 
 def main():
@@ -170,6 +214,13 @@ def main():
     my_logdir.recent_date_logs()
     my_logdir.concatenate_recent_logs()
 
+    # Can I run the next date now?
+    my_logdir.recent_date_logs()
+    my_logdir.concatenate_recent_logs()
+
+    # Can I run the next date now?
+    my_logdir.recent_date_logs()
+    my_logdir.concatenate_recent_logs()
 
 if __name__ == '__main__':
     main()

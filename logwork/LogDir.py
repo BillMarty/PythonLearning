@@ -9,16 +9,18 @@ log_path = '/Users/billmarty/CMSlogs'
 sub_dir = 'dayFiles'
 
 class LogDir():
-    """The LogDir class manages the directory in which CMS log files are located.
-    The CMS generates new log files each hour.  We want to concatenate hourly files into
-    daily logs, and locate those in a subdirectory.  Then the hourly log files will be discarded."""
+    """The LogDir class manages the directory in which CMS log files are
+    located. The CMS generates new log files each hour.  We want to concatenate
+    hourly files into daily logs, and locate those in a subdirectory.  Then
+    the hourly log files will be discarded."""
 
     def __init__(self, log_path):
         # Go to the log directory and get a list of the 'run' log files.
         os.chdir(log_path)
         if verbose: print('Working dir: ' + str(os.getcwd()))
         self.run_files = glob.glob("*run*.csv")
-        if verbose: print('There are ' + str(len(self.run_files)) + ' run log files.')
+        if verbose:
+            print('There are ' + str(len(self.run_files)) + ' run log files.')
         self.run_files.sort()
 
         # Does our output file sub_directory already exist?
@@ -52,18 +54,21 @@ class LogDir():
             print('Most recent date is: ' + str(self.date_list[-1]))
 
     def parse_csv_fields(self, header, data):
-        """Our run log files are stored in csv format, with the first line in the file
-        a header that defines the fields.  This function creates a dictionary from
-        a header line and a data line by matching up fields."""
+        """Our run log files are stored in csv format, with the first line
+        in the file a header that defines the fields.  This function creates
+        a dictionary from a header line and a data line by matching up
+        fields."""
         info = {}
         header_fields = str.split(header.rstrip(), ',')
         data_fields = str.split(data.rstrip(), ',')
 
-        # Our header may contain extra fields of information.  If so, truncate it.
+        # Our header may contain extra fields of information.
+        # If so, truncate it.
         if len(header_fields) != len(data_fields):
             header_fields = header_fields[:len(data_fields)]
 
-        # Match up the lists to create a dictionary.  Include only fields with non-empty data
+        # Match up the lists to create a dictionary.
+        # Include only fields with non-empty data
         for index in range(len(data_fields)):
             if data_fields[index]:
                 info[header_fields[index]] = data_fields[index]
@@ -71,12 +76,16 @@ class LogDir():
         return info
 
     def add_table_entry(self, table, file, first_line, last_line):
-        """When analyzing a batch of run log files, I want answers to a couple of questions:
+        """When analyzing a batch of run log files, I want answers
+        to a couple of questions:
             Are there gaps in the log?
             Does the engine start or stop in this file?
             Any other obvious anomalies?
-        This function fills in a table for at-a-glance analysis of a day's log files."""
-        gap_tolerance = 10.0  # Seconds - gaps shorter than this are not flagged.
+        This function fills in a table for at-a-glance analysis
+        of a day's log files."""
+
+        # Gaps shorter than this are not flagged.
+        gap_tolerance = 10.0
 
         entry = {'file': file}
         entry['startTime'] = first_line['linuxtime']
@@ -85,13 +94,15 @@ class LogDir():
             gap = float(entry['startTime']) - float(table[-1]['endTime'])
             if gap > gap_tolerance:
                 entry['gap'] = str(int(gap))
-        entry['starts'] = str(float(last_line['Engine Starts']) - float(first_line['Engine Starts']))
+        entry['starts'] = str(float(last_line['Engine Starts'])
+                              - float(first_line['Engine Starts']))
 
         table.append(entry)
 
     def recent_date_logs(self):
-        """Look at the list of log files in the target directory, and RETURN a list
-        of all the files from the most recent date."""
+        """Look at the list of log files in the target directory, and RETURN
+        a list of all the files from the most recent date.  Then, pop that
+        date from the list"""
 
         # In theory, run_files are already sorted by date.
         self.recent_date_files = []
@@ -105,7 +116,8 @@ class LogDir():
 
     def concatenate_recent_logs(self):
         """Let's concatenate the recent_date_files into a single file.
-            While concatenating, let's build a table that highlights gaps in the log."""
+        While concatenating, let's build a table that highlights gaps
+        in the log."""
         is_first_header = True  # Only copy the header line once.
         line_count = 0
         table = []
@@ -127,7 +139,7 @@ class LogDir():
                     # the last line is corrupt or invalid.
                     # So, check the last line, and dump if necessary.
                     keep = True
-                    commas = header.count(',') - 5  # Header has some extra fields.
+                    commas = header.count(',') - 5  # Header has extra fields.
                     if lines[-1].count(',') < commas: keep = False
                     # Any more tests?
                     if not keep:
@@ -139,8 +151,8 @@ class LogDir():
                     first_line = self.parse_csv_fields(header, lines[0])
                     last_line = self.parse_csv_fields(header, lines[-1])
                     self.add_table_entry(table, file, first_line, last_line)
-                # We're done with lines here.  Can we encourage garbage collection
-                # to free the memory?
+                # We're done with lines here.  Can we encourage garbage
+                # collection to free the memory?
                 del lines[:]
         if verbose: print('Line count: ' + str(line_count))
         if verbose: print('Table entries: ' + str(len(table)))

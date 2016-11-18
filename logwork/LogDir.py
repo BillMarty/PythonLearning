@@ -8,9 +8,6 @@ log_path = '/Users/billmarty/CMSlogs'
 # We're going to create a sub_directory for our output files.
 sub_dir = 'dayFiles'
 
-
-
-
 class LogDir():
     """The LogDir class manages the directory in which CMS log files are located.
     The CMS generates new log files each hour.  We want to concatenate hourly files into
@@ -53,6 +50,44 @@ class LogDir():
             print(str(len(self.date_list)) + ' unique dates')
             print(self.date_list)
             print('Most recent date is: ' + str(self.date_list[-1]))
+
+    def parse_csv_fields(self, header, data):
+        """Our run log files are stored in csv format, with the first line in the file
+        a header that defines the fields.  This function creates a dictionary from
+        a header line and a data line by matching up fields."""
+        info = {}
+        header_fields = str.split(header.rstrip(), ',')
+        data_fields = str.split(data.rstrip(), ',')
+
+        # Our header may contain extra fields of information.  If so, truncate it.
+        if len(header_fields) != len(data_fields):
+            header_fields = header_fields[:len(data_fields)]
+
+        # Match up the lists to create a dictionary.  Include only fields with non-empty data
+        for index in range(len(data_fields)):
+            if data_fields[index]:
+                info[header_fields[index]] = data_fields[index]
+
+        return info
+
+    def add_table_entry(self, table, file, first_line, last_line):
+        """When analyzing a batch of run log files, I want answers to a couple of questions:
+            Are there gaps in the log?
+            Does the engine start or stop in this file?
+            Any other obvious anomalies?
+        This function fills in a table for at-a-glance analysis of a day's log files."""
+        gap_tolerance = 10.0  # Seconds - gaps shorter than this are not flagged.
+
+        entry = {'file': file}
+        entry['startTime'] = first_line['linuxtime']
+        entry['endTime'] = last_line['linuxtime']
+        if table:
+            gap = float(entry['startTime']) - float(table[-1]['endTime'])
+            if gap > gap_tolerance:
+                entry['gap'] = str(int(gap))
+        entry['starts'] = str(float(last_line['Engine Starts']) - float(first_line['Engine Starts']))
+
+        table.append(entry)
 
     def recent_date_logs(self):
         """Look at the list of log files in the target directory, and RETURN a list
@@ -101,9 +136,9 @@ class LogDir():
                         outfile.write(line)
                         line_count += 1
                     # Grab the first and last line info I want for my table.
-                    first_line = parse_csv_fields(header, lines[0])
-                    last_line = parse_csv_fields(header, lines[-1])
-                    add_table_entry(table, file, first_line, last_line)
+                    first_line = self.parse_csv_fields(header, lines[0])
+                    last_line = self.parse_csv_fields(header, lines[-1])
+                    self.add_table_entry(table, file, first_line, last_line)
                 # We're done with lines here.  Can we encourage garbage collection
                 # to free the memory?
                 del lines[:]
@@ -111,44 +146,6 @@ class LogDir():
         if verbose: print('Table entries: ' + str(len(table)))
 
         # TODO write my table out to a csv file.
-
-    def parse_csv_fields(header, data):
-        """Our run log files are stored in csv format, with the first line in the file
-        a header that defines the fields.  This function creates a dictionary from
-        a header line and a data line by matching up fields."""
-        info = {}
-        header_fields = str.split(header.rstrip(), ',')
-        data_fields = str.split(data.rstrip(), ',')
-
-        # Our header may contain extra fields of information.  If so, truncate it.
-        if len(header_fields) != len(data_fields):
-            header_fields = header_fields[:len(data_fields)]
-
-        # Match up the lists to create a dictionary.  Include only fields with non-empty data
-        for index in range(len(data_fields)):
-            if data_fields[index]:
-                info[header_fields[index]] = data_fields[index]
-
-        return info
-
-    def add_table_entry(table, file, first_line, last_line):
-        """When analyzing a batch of run log files, I want answers to a couple of questions:
-            Are there gaps in the log?
-            Does the engine start or stop in this file?
-            Any other obvious anomalies?
-        This function fills in a table for at-a-glance analysis of a day's log files."""
-        gap_tolerance = 10.0  # Seconds - gaps shorter than this are not flagged.
-
-        entry = {'file': file}
-        entry['startTime'] = first_line['linuxtime']
-        entry['endTime'] = last_line['linuxtime']
-        if table:
-            gap = float(entry['startTime']) - float(table[-1]['endTime'])
-            if gap > gap_tolerance:
-                entry['gap'] = str(int(gap))
-        entry['starts'] = str(float(last_line['Engine Starts']) - float(first_line['Engine Starts']))
-
-        table.append(entry)
 
 
 def main():

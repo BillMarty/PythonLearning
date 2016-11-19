@@ -235,16 +235,6 @@ def main():
     my_logdir = LogDir(log_path)
     my_logdir.process_all_dates()
 
-    # my_logdir.recent_date_logs()
-    # my_logdir.concatenate_recent_logs()
-    #
-    # # Can I run the next date now?
-    # my_logdir.recent_date_logs()
-    # my_logdir.concatenate_recent_logs()
-    #
-    # # Can I run the next date now?
-    # my_logdir.recent_date_logs()
-    # my_logdir.concatenate_recent_logs()
 
 if __name__ == '__main__':
     main()

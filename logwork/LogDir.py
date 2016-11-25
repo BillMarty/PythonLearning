@@ -4,7 +4,8 @@ import os
 import glob
 
 verbose = True  # Switch dev print statements on and off
-log_path = '/Users/billmarty/CMSlogs'
+#log_path = '/Users/billmarty/CMSlogs'
+log_path = '/Users/billmarty/V2logs/logs'
 # We're going to create a sub_directory for our output files.
 sub_dir = 'dayFiles'
 

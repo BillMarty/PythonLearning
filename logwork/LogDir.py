@@ -5,7 +5,8 @@ import glob
 
 verbose = True  # Switch dev print statements on and off
 #log_path = '/Users/billmarty/CMSlogs'
-log_path = '/Users/billmarty/V2logs/logs'
+log_path = '/Users/billmarty/CMSlogsShort'
+#log_path = '/Users/billmarty/V2logs/logs'
 # We're going to create a sub_directory for our output files.
 sub_dir = 'dayFiles'
 
@@ -17,12 +18,19 @@ class LogDir():
 
     def __init__(self, log_path):
         # Go to the log directory and get a list of the 'run' log files.
+        # Also list 'bms' files and 'fast' files (if any).
         os.chdir(log_path)
-        if verbose: print('Working dir: ' + str(os.getcwd()))
+        if verbose: print('Working dir: {}'.format(os.getcwd()))
         self.run_files = glob.glob("*run*.csv")
+        self.bms_files = glob.glob("*bms*.csv")
+        self.fast_files = glob.glob("*fast*.csv")
         if verbose:
-            print('There are ' + str(len(self.run_files)) + ' run log files.')
+            print('There are {} run files, {} bms files, and {} fast files.'
+                  .format(len(self.run_files), len(self.bms_files),
+                          len(self.fast_files)))
         self.run_files.sort()
+        self.bms_files.sort()
+        # Don't bother sorting fast files, as we're just going to discard 'em.
 
         # Does our output file sub_directory already exist?
         dir_contents = os.listdir(log_path)
@@ -48,10 +56,8 @@ class LogDir():
                 surprise_files.append(file)
         if verbose:
             if surprise_files:
-                print('Surprise files: ')
-                print(surprise_files)
-            print(str(len(self.date_list)) + ' unique dates')
-            print(self.date_list)
+                print('Surprise files: {}'.format(surprise_files))
+            print("{} unique dates: {}".format(len(self.date_list), self.date_list))
 
     @staticmethod
     def parse_csv_fields(header, data):
@@ -142,7 +148,7 @@ class LogDir():
                 lines += 1
 
         if verbose:
-            print(str(lines) + ' table lines written to ' + sub_dir_table_name)
+            print('{} table lines written to {}'.format(lines, sub_dir_table_name))
 
     def recent_date_logs(self):
         """Look at the list of log files in the target directory, and RETURN
@@ -159,9 +165,9 @@ class LogDir():
         # Pop this date from the list.
         self.active_date = self.date_list.pop()
         if verbose:
-            print('\nMost recent date is: ' + str(self.active_date))
-            print(str(len(self.recent_date_files)) + ' recent date files')
-            print(self.recent_date_files)
+            print('\nMost recent date is {}'.format(self.active_date))
+            print('{} recent date files: {}'.format(len(self.recent_date_files),
+                                                    self.recent_date_files))
 
         return self.recent_date_files
 
@@ -174,10 +180,9 @@ class LogDir():
         table = []
         recent_date_file_name = self.active_date + '_day_run.csv'
         recent_date_table_name = self.active_date + '_analysis.csv'
-        sub_dir_file_name = './' + sub_dir + '/' + recent_date_file_name
-        sub_dir_table_name = './' + sub_dir + '/' + recent_date_table_name
+        sub_dir_file_name = './{}/{}'.format(sub_dir, recent_date_file_name)
+        sub_dir_table_name = './{}/{}'.format(sub_dir, recent_date_table_name)
         if verbose:
-            print(recent_date_file_name)
             print(sub_dir_file_name)
         with open(sub_dir_file_name, 'w') as outfile:
             for file in self.recent_date_files:
@@ -213,8 +218,9 @@ class LogDir():
                 # We're done with lines here.  Can we encourage garbage
                 # collection to free the memory?
                 del lines[:]
-        if verbose: print('Line count: ' + str(line_count))
-        if verbose: print('Table entries: ' + str(len(table)))
+        if verbose:
+            print('Line count: {}'.format(line_count))
+            print('Table entries: {}'.format(len(table)))
         self.write_table_file(table, sub_dir_table_name)
 
     def process_all_dates(self):

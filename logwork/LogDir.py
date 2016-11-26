@@ -16,6 +16,27 @@ class LogDir():
     hourly files into daily logs, and locate those in a subdirectory.  Then
     the hourly log files will be discarded."""
 
+    @staticmethod
+    def remove_files(path, file_list):
+        """In the directory specified by <path>, remove the listed files."""
+        cwd = os.getcwd()
+        try:
+            os.chdir(path)
+        except:
+            print('!!chdir exception!!')
+        else:
+            count = 0
+            for file in file_list:
+                try:
+                    os.remove(file)
+                except:
+                    print('!!remove exception!! at {}'.format(file))
+                else:
+                    count += 1
+        if verbose:
+            print('Removed {} files of {}'.format(count, len(file_list)))
+        os.chdir(cwd)
+
     def __init__(self, log_path):
         # Go to the log directory and get a list of the 'run' log files.
         # Also list 'bms' files and 'fast' files (if any).
@@ -30,7 +51,8 @@ class LogDir():
                           len(self.fast_files)))
         self.run_files.sort()
         self.bms_files.sort()
-        # Don't bother sorting fast files, as we're just going to discard 'em.
+        if self.fast_files:
+            LogDir.remove_files(log_path, self.fast_files)
 
         # Does our output file sub_directory already exist?
         dir_contents = os.listdir(log_path)

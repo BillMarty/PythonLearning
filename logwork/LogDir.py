@@ -16,27 +16,6 @@ class LogDir():
     hourly files into daily logs, and locate those in a subdirectory.  Then
     the hourly log files will be discarded."""
 
-    @staticmethod
-    def remove_files(path, file_list):
-        """In the directory specified by <path>, remove the listed files."""
-        cwd = os.getcwd()
-        try:
-            os.chdir(path)
-        except:
-            print('!!chdir exception!!')
-        else:
-            count = 0
-            for file in file_list:
-                try:
-                    os.remove(file)
-                except:
-                    print('!!remove exception!! at {}'.format(file))
-                else:
-                    count += 1
-        if verbose:
-            print('Removed {} files of {}'.format(count, len(file_list)))
-        os.chdir(cwd)
-
     def __init__(self, log_path):
         # Go to the log directory and get a list of the 'run' log files.
         # Also list 'bms' files and 'fast' files (if any).
@@ -52,7 +31,7 @@ class LogDir():
         self.run_files.sort()
         self.bms_files.sort()
         if self.fast_files:
-            LogDir.remove_files(log_path, self.fast_files)
+            self.remove_files(log_path, self.fast_files)
 
         # Does our output file sub_directory already exist?
         dir_contents = os.listdir(log_path)
@@ -80,6 +59,27 @@ class LogDir():
             if surprise_files:
                 print('Surprise files: {}'.format(surprise_files))
             print("{} unique dates: {}".format(len(self.date_list), self.date_list))
+
+    @staticmethod
+    def remove_files(path, file_list):
+        """In the directory specified by <path>, remove the listed files."""
+        cwd = os.getcwd()
+        try:
+            os.chdir(path)
+        except:
+            print('!!chdir exception!!')
+        else:
+            count = 0
+            for file in file_list:
+                try:
+                    os.remove(file)
+                except:
+                    print('!!remove exception!! at {}'.format(file))
+                else:
+                    count += 1
+        if verbose:
+            print('Removed {} files of {}'.format(count, len(file_list)))
+        os.chdir(cwd)
 
     @staticmethod
     def parse_csv_fields(header, data):
@@ -193,8 +193,8 @@ class LogDir():
 
         return self.recent_date_files
 
-    def concatenate_recent_logs(self):
-        """Let's concatenate the recent_date_files into a single file.
+    def concatenate_run_files(self, run_file_list):
+        """Let's concatenate the listed run_files into a single file.
         While concatenating, let's build a table that highlights gaps
         in the log."""
         is_first_header = True  # Only copy the header line once.
@@ -245,13 +245,16 @@ class LogDir():
             print('Table entries: {}'.format(len(table)))
         self.write_table_file(table, sub_dir_table_name)
 
+    # def concatenate_bms_files(self):
+    #     """Let's concatenate the input list of bms files into a single file."""
+
     def process_all_dates(self):
         """If logging has been running for a while, the directory will have
         log files for multiple dates.  Process them all :-)"""
 
         while self.date_list:
             self.recent_date_logs()
-            self.concatenate_recent_logs()
+            self.concatenate_run_files()
 
 
 

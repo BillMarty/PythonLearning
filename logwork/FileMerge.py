@@ -6,8 +6,10 @@ import fnmatch
 verbose = True
 #verbose = False
 
+raw_path = '/Users/billmarty/SN2logs/ThanksgivingWeekend'
+
 # get the bms and run .csv files
-raw_path = input('Enter directory path: ')
+# raw_path = input('Enter directory path: ')
 if verbose: print(raw_path)
 os.chdir(raw_path)
 files=glob.glob("*.csv")

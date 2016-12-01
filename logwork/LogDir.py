@@ -173,28 +173,35 @@ class LogDir():
             print('{} table lines written to {}'.format(lines, sub_dir_table_name))
 
     def recent_date_logs(self):
-        """Look at the list of log files in the target directory, and RETURN
-        a list of all the files from the most recent date.  Then, pop that
-        date from the list"""
+        """Look at the list of log files in the target directory, and generate
+        lists of all the run and bms files from the most recent date.
+        Then, pop that date from the list"""
 
         # In theory, run_files are already sorted by date.
-        self.recent_date_files = []
+        self.recent_date_run_files = []
         while self.date_list[-1] in self.run_files[-1]:
-            self.recent_date_files.append(self.run_files.pop())
+            self.recent_date_run_files.append(self.run_files.pop())
             # Avoid the IndexError when we pop the last run_file.
             if not self.run_files: break
-        self.recent_date_files.reverse()
+        self.recent_date_run_files.reverse()
+        # Now, bms files...
+        self.recent_date_bms_files = []
+        while self.date_list[-1] in self.bms_files[-1]:
+            self.recent_date_bms_files.append(self.bms_files.pop())
+            # Avoid the IndexError when we pop the last run_file.
+            if not self.bms_files: break
+        self.recent_date_bms_files.reverse()
         # Pop this date from the list.
         self.active_date = self.date_list.pop()
         if verbose:
             print('\nMost recent date is {}'.format(self.active_date))
-            print('{} recent date files: {}'.format(len(self.recent_date_files),
-                                                    self.recent_date_files))
+            print('{} recent date run files: {}'.format(len(self.recent_date_run_files),
+                                                    self.recent_date_run_files))
+            print('{} recent date bms files: {}'.format(len(self.recent_date_bms_files),
+                                                    self.recent_date_bms_files))
 
-        return self.recent_date_files
-
-    def concatenate_run_files(self, run_file_list):
-        """Let's concatenate the listed run_files into a single file.
+    def concatenate_run_files(self):
+        """Let's concatenate the run_files into a single file.
         While concatenating, let's build a table that highlights gaps
         in the log."""
         is_first_header = True  # Only copy the header line once.
@@ -207,7 +214,7 @@ class LogDir():
         if verbose:
             print(sub_dir_file_name)
         with open(sub_dir_file_name, 'w') as outfile:
-            for file in self.recent_date_files:
+            for file in self.recent_date_run_files:
                 with open(file, 'r') as infile:
                     lines = infile.readlines()
                     # Check for empty files.  We got some in development.
@@ -245,8 +252,42 @@ class LogDir():
             print('Table entries: {}'.format(len(table)))
         self.write_table_file(table, sub_dir_table_name)
 
-    # def concatenate_bms_files(self):
-    #     """Let's concatenate the input list of bms files into a single file."""
+    def concatenate_bms_files(self):
+        """Let's concatenate the input list of bms files into a single file."""
+        line_count = 0
+        recent_date_file_name = self.active_date + '_day_bms.csv'
+        sub_dir_file_name = './{}/{}'.format(sub_dir, recent_date_file_name)
+        if verbose:
+            print(sub_dir_file_name)
+        with open(sub_dir_file_name, 'w') as outfile:
+            for file in self.recent_date_bms_files:
+                with open(file, 'r') as infile:
+                    lines = infile.readlines()
+                    # Check for empty files.  We got some in development.
+                    # Also have seen files with only a header line.
+                    if lines:
+                        # I've seen at least one run log file where
+                        # the last line is corrupt or invalid.
+                        # Assume the same will be likely in bms files.
+                        # So, check the last line, and dump if necessary.
+                        # S records have 23 fields, M's have 25.
+                        keep = True
+                        commas0 = lines[0].count(',')
+                        commas1 = lines[1].count(',')
+                        commas = min(commas0, commas1)
+                        if lines[-1].count(',') < commas: keep = False
+                        # Any more tests?
+                        if not keep:
+                            line_invalid = lines.pop()
+                        for n, line in enumerate(lines):
+                            outfile.write(line)
+                            line_count += 1
+                # We're done with lines here.  Can we encourage garbage
+                # collection to free the memory?
+                del lines[:]
+        if verbose:
+            print('Line count: {}'.format(line_count))
+
 
     def process_all_dates(self):
         """If logging has been running for a while, the directory will have
@@ -255,6 +296,7 @@ class LogDir():
         while self.date_list:
             self.recent_date_logs()
             self.concatenate_run_files()
+            self.concatenate_bms_files()
 
 
 

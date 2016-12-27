@@ -314,32 +314,29 @@ class LogDir():
                             if verbose:
                                 LogDir.prRed('!!Removed invalid last line!!')
                         # Any more tests?
-                        # Now, separate out the S and M messages.
-                        if ',001,S' in lines[0]:
-                            # The first message is a String message.
-                            string_lines = lines[::2]
-                            module_lines = lines[1::2]
-                        elif ',001,M' in lines[0]:
-                            # The first message is a Module message.
-                            module_lines = lines[::2]
-                            string_lines = lines[1::2]
-                        else:
-                            LogDir.prRed('!!String vs Module detection failed!!')
-                            if verbose:
-                                print(lines[0])
-                            # Let's dump all lines into the string_file
-                            string_lines = lines
-                            module_lines = ['All lines were written to the'
-                                            'string file.']
-                        for line in string_lines:
-                            string_file.write(line)
-                            line_count += 1
-                        for line in module_lines:
-                            module_file.write(line)
-                            line_count += 1
+                        # Write the lines out, separating S and M messages into
+                        #   their respective files.  I tried depending on S and
+                        #   M messages alternating, but it wasn't relaible, so
+                        #   will test every line.
+                        for line in lines:
+                            if ',001,S' or '1,S,122' in line:
+                                string_file.write(line)
+                                line_count += 1
+                            elif ',001,M' or '1,M,122' in line:
+                                module_file.write(line)
+                                line_count += 1
+                            else:
+                                LogDir.prRed(
+                                    '!!String vs Module detection failed!!')
+                                if verbose:
+                                    LogDir.prRed(lines[0])
+                                # Write all suspect lines into the String file.
+                                string_file.write(line)
+                                line_count += 1
                         # We're done with lines here.  Can we encourage garbage
                         # collection to free the memory?
-                        del lines, string_lines, module_lines
+                        del lines
+
         if verbose:
             print('Line count: {}'.format(line_count))
 

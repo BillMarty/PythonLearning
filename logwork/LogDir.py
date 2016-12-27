@@ -281,12 +281,20 @@ class LogDir():
             "Software Ver (Slave),Front Power Connector Temp,Reserved," \
             "Fletcher's-16\n"
         line_count = 0
-        recent_date_file_name = self.active_date + '_day_bms.csv'
-        sub_dir_file_name = './{}/{}'.format(sub_dir, recent_date_file_name)
+        recent_date_file_name_string = self.active_date + '_day_bms_s.csv'
+        recent_date_file_name_module = self.active_date + '_day_bms_m.csv'
+        sub_dir_file_name_string = './{}/{}'.format(sub_dir,
+                                        recent_date_file_name_string)
+        sub_dir_file_name_module = './{}/{}'.format(sub_dir,
+                                        recent_date_file_name_module)
         if verbose:
-            print(sub_dir_file_name)
-        with open(sub_dir_file_name, 'w') as outfile:
-            outfile.write(string_message_header)
+            print(sub_dir_file_name_string)
+        # Let's unmingle the string and module messages and write them into
+        #   separate concatenated files.
+        with open(sub_dir_file_name_string, 'w') as string_file, \
+             open(sub_dir_file_name_module, 'w') as module_file:
+            string_file.write(string_message_header)
+            module_file.write(module_message_header)
             for file in self.recent_date_bms_files:
                 with open(file, 'r') as infile:
                     lines = infile.readlines()
@@ -306,16 +314,32 @@ class LogDir():
                             if verbose:
                                 LogDir.prRed('!!Removed invalid last line!!')
                         # Any more tests?
-
-                        # Let's unmingle the string and module messages as we
-                        #   write out the concatenated file
-
-                        for n, line in enumerate(lines):
-                            outfile.write(line)
+                        # Now, separate out the S and M messages.
+                        if ',001,S' in lines[0]:
+                            # The first message is a String message.
+                            string_lines = lines[::2]
+                            module_lines = lines[1::2]
+                        elif ',001,M' in lines[0]:
+                            # The first message is a Module message.
+                            module_lines = lines[::2]
+                            string_lines = lines[1::2]
+                        else:
+                            LogDir.prRed('!!String vs Module detection failed!!')
+                            if verbose:
+                                print(lines[0])
+                            # Let's dump all lines into the string_file
+                            string_lines = lines
+                            module_lines = ['All lines were written to the'
+                                            'string file.']
+                        for line in string_lines:
+                            string_file.write(line)
                             line_count += 1
-                # We're done with lines here.  Can we encourage garbage
-                # collection to free the memory?
-                del lines[:]
+                        for line in module_lines:
+                            module_file.write(line)
+                            line_count += 1
+                        # We're done with lines here.  Can we encourage garbage
+                        # collection to free the memory?
+                        del lines, string_lines, module_lines
         if verbose:
             print('Line count: {}'.format(line_count))
 

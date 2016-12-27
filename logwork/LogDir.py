@@ -319,10 +319,10 @@ class LogDir():
                         #   M messages alternating, but it wasn't relaible, so
                         #   will test every line.
                         for line in lines:
-                            if ',001,S' or '1,S,122' in line:
+                            if '1,S,122' in line:
                                 string_file.write(line)
                                 line_count += 1
-                            elif ',001,M' or '1,M,122' in line:
+                            elif '1,M,122' in line:
                                 module_file.write(line)
                                 line_count += 1
                             else:
